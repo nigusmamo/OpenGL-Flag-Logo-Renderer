@@ -7,26 +7,30 @@
     // Windows/Linux setup: Using the standard GL path
     #include <GL/glut.h>
 #endif
+#include <math.h> // Required for sine-wave calculations
 
 // --- Global Variables for State and Interaction ---
 bool showFlag = true;          // Toggle between Flag (true) and Logo (false)
 float rotX = 0.0f, rotY = 0.0f; // Rotation angles for 3D interaction
 int lastX, lastY;              // Last mouse positions
 bool isDragging = false;       // Mouse click state
+float waveTime = 0.0f;         // Time variable for wave animation
 
-// Helper function to draw flag layers with 3D depth
+// Helper function to draw flag layers with 3D depth and Sine-wave animation
 void drawFlagLayer(unsigned char r, unsigned char g, unsigned char b, float z_offset, float (*topFunc)(float), float (*bottomFunc)(float)) {
     float step = 0.05f; 
     glColor3ub(r, g, b);
     glBegin(GL_QUAD_STRIP);
     for (float x = -0.9f; x <= 0.901f; x += step) {
-        glVertex3f(x, topFunc(x), z_offset);
-        glVertex3f(x, bottomFunc(x), z_offset);
+        // Dynamic wave calculation
+        float wave = sin(x * 4.0f + waveTime) * 0.05f;
+        glVertex3f(x, topFunc(x) + wave, z_offset + wave);
+        glVertex3f(x, bottomFunc(x) + wave, z_offset + wave);
     }
     glEnd();
 }
 
-// Flag Boundary Math
+// Flag Boundary Math logic preserved for accuracy
 float greenTop(float x) { return 0.9f; }
 float greenBottom(float x) { return -0.9f; }
 float whiteBound(float x) { return 0.9f * (1.0f - (x + 0.9f) / 1.8f); }
@@ -35,20 +39,16 @@ float yellowBound(float x) { float v = 0.75f * (1.0f - (x + 0.9f) / 1.65f); retu
 float blackBound(float x) { float v = 0.9f * (1.0f - (x + 0.9f) / 0.8f); return (v > 0) ? v : 0; }
 float redBound(float x) { float v = 0.75f * (1.0f - (x + 0.9f) / 0.65f); return (v > 0) ? v : 0; }
 
-// --- Function to draw the Guyana National Flag (3D Perspective Version) ---
+// --- Function to draw the Guyana National Flag (3D Animated Version) ---
 void drawFlag() {
     // 1. Base Green Layer (Representing agriculture and forests)
     drawFlagLayer(0, 158, 73,    0.001f, greenTop, greenBottom);
-    
     // 2. White Fimbriation (Large Triangle - Representing rivers and water)
     drawFlagLayer(255, 255, 255, 0.002f, whiteBound, whiteNegBound);
-    
     // 3. Golden Arrowhead (Yellow Triangle - Representing mineral wealth)
     drawFlagLayer(252, 209, 22,  0.003f, yellowBound, [](float x){return -yellowBound(x);});
-    
     // 4. Black Fimbriation (Small Triangle - Representing endurance)
     drawFlagLayer(0, 0, 0,       0.004f, blackBound, [](float x){return -blackBound(x);});
-    
     // 5. Red Triangle (Representing zeal and dynamism)
     drawFlagLayer(206, 17, 38,   0.005f, redBound, [](float x){return -redBound(x);});
     
@@ -61,9 +61,9 @@ void drawFlag() {
 
 // --- Function to draw one tapered 3D-styled quadrant of the logo ---
 void drawSingleCube() {
-    // Wide Front Face (Starting at -0.4 to face camera)
+    // Wide Front Face (Starting at -0.4 to face camera correctly)
     float f_in = 0.22f; float f_out = 0.85f; float fZ = -0.4f; 
-    // Narrow Back Face (Receding to 0.3)
+    // Narrow Back Face (Receding depth)
     float b_in = 0.01f; float b_out = 0.45f; float bZ = 0.3f;
 
     // 1. FRONT FACE (Main Square - Pure Black)
@@ -112,7 +112,7 @@ void drawSingleCube() {
         glVertex3f(f_in, f_in, fZ); glVertex3f(f_out, f_in, fZ);
         glVertex3f(f_out, f_out, fZ); glVertex3f(f_in, f_out, fZ);
     glEnd();
-    glBegin(GL_LINES); // Perspective connectors
+    glBegin(GL_LINES); // Perspective depth connectors
         glVertex3f(f_in, f_in, fZ); glVertex3f(b_in, b_in, bZ);
         glVertex3f(f_out, f_in, fZ); glVertex3f(b_out, b_in, bZ);
         glVertex3f(f_out, f_out, fZ); glVertex3f(b_out, b_out, bZ);
@@ -122,10 +122,10 @@ void drawSingleCube() {
 
 // --- Function to build the full logo using Mirroring Transformations ---
 void drawLogo() {
-    glPushMatrix(); drawSingleCube(); glPopMatrix();
-    glPushMatrix(); glScalef(-1, 1, 1); drawSingleCube(); glPopMatrix();
-    glPushMatrix(); glScalef(-1, -1, 1); drawSingleCube(); glPopMatrix();
-    glPushMatrix(); glScalef(1, -1, 1); drawSingleCube(); glPopMatrix();
+    glPushMatrix(); drawSingleCube(); glPopMatrix();                           // Top-Right
+    glPushMatrix(); glScalef(-1, 1, 1); drawSingleCube(); glPopMatrix();        // Top-Left (Mirror X)
+    glPushMatrix(); glScalef(-1, -1, 1); drawSingleCube(); glPopMatrix();       // Bottom-Left (Mirror X & Y)
+    glPushMatrix(); glScalef(1, -1, 1); drawSingleCube(); glPopMatrix();        // Bottom-Right (Mirror Y)
 }
 
 // --- Interaction Callbacks ---
@@ -142,6 +142,14 @@ void motion(int x, int y) {
     }
 }
 
+// Timer function to update wave animation
+void timer(int value) {
+    waveTime += 0.1f;
+    glutPostRedisplay();
+    glutTimerFunc(16, timer, 0); // ~60 FPS
+}
+
+// --- Keyboard Interaction Logic ---
 void keyboard(unsigned char key, int x, int y) {
     // Press 'F' to show Flag, 'L' to show Logo
     if (key == 'f' || key == 'F') { showFlag = true; rotX = 0; rotY = 0; }
@@ -156,7 +164,7 @@ void display() {
     else glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST); // Enable depth testing for realistic 3D volume
     glLoadIdentity();
     
     glRotatef(rotX, 1, 0, 0);
@@ -172,12 +180,17 @@ void display() {
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    
+    // Set window size to match flag's 3:5 aspect ratio
     glutInitWindowSize(1000, 600); 
-    glutCreateWindow("OpenGL Flag & Logo: Press [F] for Flag, [L] for Logo (Mouse to Rotate)");
+    
+    // Instructions added to the window title for better UX
+    glutCreateWindow("OpenGL Flag & Geometric Logo: Press [F] for Flag, [L] for Logo (Drag to Rotate)");
     
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse); glutMotionFunc(motion);
+    glutTimerFunc(16, timer, 0); // Start animation
     
     glutMainLoop();
     return 0;
@@ -186,5 +199,5 @@ int main(int argc, char** argv) {
 /*
  * Refactored by: [Ermiyas Lakew]
  * Description: Cleaned up code with detailed comments and cross-platform support.
- * Bonus Implementation: Add 3D viewing capabilities.
+ * Bonus Implementation: Interactive 3D Rotation & Dynamic Sine-Wave Animation.
  */
