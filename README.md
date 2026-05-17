@@ -78,7 +78,7 @@ To allow Windows to recognize the tools:
     brew install freeglut
   ```
 
-#### How to Setup and Run
+### Step 5: How to Setup and Run
 
 1. Clone the Project
 Open your Terminal (Mac) or Command Prompt (Windows) and run:
