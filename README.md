@@ -7,6 +7,9 @@ This project is a Computer Graphics implementation using **OpenGL** and **C++**.
 - **Framework:** OpenGL (GLUT)
 - **Language:** C++
 
+## Live Preview
+![Project Demo](assets/output_demo.gif)
+
 ## Features to Implement
 - **Basic Primitives:** Drawing using Points, Lines, and Polygons.
 - **Color Accuracy:** Implementation of real-world RGB values for the Guyana Flag.
