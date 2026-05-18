@@ -12,7 +12,7 @@ Before you can work, you need a copy of the project.
 6. Type the following command and paste the link:
 
    ```bash
-   git clone https://github.com/[YOUR_USERNAME]/OpenGL-Flag-Logo-Renderer.git
+   git clone https://github.com/nigusmamo/OpenGL-Flag-Logo-Renderer.git
 
    cd OpenGL-Flag-Logo-Renderer
 
