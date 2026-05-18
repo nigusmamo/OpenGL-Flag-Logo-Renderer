@@ -7,6 +7,9 @@ This project is a Computer Graphics implementation using **OpenGL** and **C++**.
 - **Framework:** OpenGL (GLUT)
 - **Language:** C++
 
+## Live Preview
+![Project Demo](assets/output_demo.gif)
+
 ## Features to Implement
 - **Basic Primitives:** Drawing using Points, Lines, and Polygons.
 - **Color Accuracy:** Implementation of real-world RGB values for the Guyana Flag.
@@ -78,7 +81,7 @@ To allow Windows to recognize the tools:
     brew install freeglut
   ```
 
-#### How to Setup and Run
+### Step 5: How to Setup and Run
 
 1. Clone the Project
 Open your Terminal (Mac) or Command Prompt (Windows) and run:
